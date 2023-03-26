@@ -19,6 +19,11 @@
     }
   ],
 
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+
   "web_accessible_resources": [
     "oneko.gif"
   ]

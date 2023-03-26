@@ -2,8 +2,9 @@
 
 (function oneko() {
   const nekoEl = document.createElement("div");
-  let nekoPosX = 32;
-  let nekoPosY = 32;
+  // Hide neko away outside the screen at first. Pop in instead of teleport.
+  let nekoPosX = -16;
+  let nekoPosY = -16;
   let mousePosX = 0;
   let mousePosY = 0;
   let frameCount = 0;
@@ -74,19 +75,37 @@
     ],
   };
 
-  function create() {
-    nekoEl.id = "oneko";
-    nekoEl.style.width = "32px";
-    nekoEl.style.height = "32px";
-    nekoEl.style.position = "fixed";
-    nekoEl.style.pointerEvents = "none";
-    nekoEl.style.backgroundImage = "url('"+browser.runtime.getURL("oneko.gif")+"')";
-    nekoEl.style.imageRendering = "pixelated";
-    nekoEl.style.left = `${nekoPosX - 16}px`;
-    nekoEl.style.top = `${nekoPosY - 16}px`;
-    nekoEl.style.zIndex = "999";
+  function updateFromBg(response){
+    nekoPosX = response.nekoPos.x;
+    nekoPosY = response.nekoPos.y;
+    mousePosX = response.mousePos.x;
+    mousePosY = response.mousePos.y;
+  }
 
-    document.body.appendChild(nekoEl);
+  function create() {
+    // Neko may already exist on page, don't need another one then.
+    let existingNeko = document.querySelector("#oneko");
+
+    if (existingNeko != null){
+      nekoEl = existingNeko;
+    }
+    else {
+      nekoEl.id = "oneko";
+      nekoEl.style.width = "32px";
+      nekoEl.style.height = "32px";
+      nekoEl.style.position = "fixed";
+      nekoEl.style.pointerEvents = "none";
+      nekoEl.style.backgroundImage = "url('"+browser.runtime.getURL("oneko.gif")+"')";
+      nekoEl.style.imageRendering = "pixelated";
+      nekoEl.style.left = `${nekoPosX - 16}px`;
+      nekoEl.style.top = `${nekoPosY - 16}px`;
+      nekoEl.style.zIndex = "9999";
+  
+      document.body.appendChild(nekoEl);
+
+      // Get previously known position and direction on another page
+      browser.runtime.sendMessage({}).then(updateFromBg,(err)=>{console.log(err)});
+    }
 
     document.onmousemove = (event) => {
       mousePosX = event.clientX;
@@ -94,6 +113,13 @@
     };
 
     window.onekoInterval = setInterval(frame, 100);
+
+    // When document looses focus, hand off position for next page.
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        browser.runtime.sendMessage({nekoPos: {x:nekoPosX, y:nekoPosY}, mousePos:{x:mousePosX, y:mousePosY}});
+      }
+    });
   }
 
   function setSprite(name, frame) {

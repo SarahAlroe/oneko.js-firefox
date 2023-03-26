@@ -1,0 +1,1 @@
+zip -r -FS ../oneko.zip * --exclude '*.git*' 'element/*' 'demo.html' 'oneko-webring.js' 'README.md' 'package.sh'
