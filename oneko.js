@@ -109,7 +109,7 @@
 
     document.onmousemove = (event) => {
       mousePosX = event.clientX;
-      mousePosY = event.clientY - 32; // Offset mouse position to keep neko above pointer.
+      mousePosY = event.clientY;
     };
 
     window.onekoInterval = setInterval(frame, 100);
@@ -190,11 +190,17 @@
 
   function frame() {
     frameCount += 1;
-    const diffX = nekoPosX - mousePosX;
-    const diffY = nekoPosY - mousePosY;
+    const targetX = Math.min(Math.max(0, mousePosX), window.innerWidth)
+    const targetY = Math.min(Math.max(1, mousePosY - 32), window.innerWidth-1) // Vertical offset to get less in the way
+    const diffX = nekoPosX - targetX;
+    const diffY = nekoPosY - targetY;
     const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
 
-    if (distance < nekoSpeed || distance < 16) {
+    // If Neko is already idle, stay idle at a greater distance than if active.
+    // If active, limit vertical range to avoid intentionally ending under the cursor.
+    let shouldIdle = (idleTime > 1 && (distance < nekoSpeed || (distance < 64))) ||
+                      (distance < nekoSpeed || (distance < 48 && Math.abs(diffY) < 16))
+    if (shouldIdle) {
       idle();
       return;
     }
