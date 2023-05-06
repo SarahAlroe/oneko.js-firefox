@@ -109,7 +109,7 @@
 
     document.onmousemove = (event) => {
       mousePosX = event.clientX;
-      mousePosY = event.clientY;
+      mousePosY = event.clientY - 32; // Offset mouse position to keep neko above pointer.
     };
 
     window.onekoInterval = setInterval(frame, 100);
@@ -194,7 +194,7 @@
     const diffY = nekoPosY - mousePosY;
     const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
 
-    if (distance < nekoSpeed || distance < 48) {
+    if (distance < nekoSpeed || distance < 16) {
       idle();
       return;
     }

@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "oneko",
-  "version": "1.0",
+  "version": "1.1",
 
   "description": "Applies the oneko.js port of xneko/oneko to all pages.",
 
@@ -27,5 +27,4 @@
   "web_accessible_resources": [
     "oneko.gif"
   ]
-
 }
