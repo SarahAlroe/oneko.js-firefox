@@ -75,7 +75,7 @@
     ],
   };
 
-  function updateFromBg(response){
+  function updateFromBg(response) {
     nekoPosX = response.nekoPos.x;
     nekoPosY = response.nekoPos.y;
     mousePosX = response.mousePos.x;
@@ -86,7 +86,7 @@
     // Neko may already exist on page, don't need another one then.
     let existingNeko = document.querySelector("#oneko");
 
-    if (existingNeko != null){
+    if (existingNeko != null) {
       nekoEl = existingNeko;
     }
     else {
@@ -95,16 +95,16 @@
       nekoEl.style.height = "32px";
       nekoEl.style.position = "fixed";
       nekoEl.style.pointerEvents = "none";
-      nekoEl.style.backgroundImage = "url('"+browser.runtime.getURL("oneko.gif")+"')";
+      nekoEl.style.backgroundImage = "url('" + browser.runtime.getURL("oneko.gif") + "')";
       nekoEl.style.imageRendering = "pixelated";
       nekoEl.style.left = `${nekoPosX - 16}px`;
       nekoEl.style.top = `${nekoPosY - 16}px`;
       nekoEl.style.zIndex = "9999";
-  
+
       document.body.appendChild(nekoEl);
 
       // Get previously known position and direction on another page
-      browser.runtime.sendMessage({}).then(updateFromBg,(err)=>{console.log(err)});
+      browser.runtime.sendMessage({}).then(updateFromBg, (err) => { console.log(err) });
     }
 
     document.onmousemove = (event) => {
@@ -115,11 +115,13 @@
     window.onekoInterval = setInterval(frame, 100);
 
     // When document looses focus, hand off position for next page.
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        browser.runtime.sendMessage({nekoPos: {x:nekoPosX, y:nekoPosY}, mousePos:{x:mousePosX, y:mousePosY}});
-      }
-    });
+    document.addEventListener("visibilitychange", onVisChanged);
+  }
+
+  function onVisChanged() {
+    if (document.hidden) {
+      browser.runtime.sendMessage({ nekoPos: { x: nekoPosX, y: nekoPosY }, mousePos: { x: mousePosX, y: mousePosY } });
+    }
   }
 
   function setSprite(name, frame) {
@@ -156,7 +158,7 @@
       }
       idleAnimation =
         avalibleIdleAnimations[
-          Math.floor(Math.random() * avalibleIdleAnimations.length)
+        Math.floor(Math.random() * avalibleIdleAnimations.length)
         ];
     }
 
@@ -191,7 +193,7 @@
   function frame() {
     frameCount += 1;
     const targetX = Math.min(Math.max(0, mousePosX), window.innerWidth)
-    const targetY = Math.min(Math.max(1, mousePosY - 32), window.innerWidth-1) // Vertical offset to get less in the way
+    const targetY = Math.min(Math.max(1, mousePosY - 32), window.innerWidth - 1) // Vertical offset to get less in the way
     const diffX = nekoPosX - targetX;
     const diffY = nekoPosY - targetY;
     const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
@@ -199,7 +201,7 @@
     // If Neko is already idle, stay idle at a greater distance than if active.
     // If active, limit vertical range to avoid intentionally ending under the cursor.
     let shouldIdle = (idleTime > 1 && (distance < nekoSpeed || (distance < 64))) ||
-                      (distance < nekoSpeed || (distance < 48 && Math.abs(diffY) < 16))
+      (distance < nekoSpeed || (distance < 48 && Math.abs(diffY) < 16))
     if (shouldIdle) {
       idle();
       return;
@@ -232,5 +234,26 @@
     nekoEl.style.top = `${nekoPosY - 16}px`;
   }
 
-  create();
+  function destroy() {
+    clearInterval(window.onekoInterval);
+    let existingNeko = document.querySelector("#oneko");
+    if (existingNeko != null) {
+      existingNeko.remove();
+      nekoEl = existingNeko;
+    }
+    document.removeEventListener("visibilitychange", onVisChanged);
+  }
+
+  function createOrDestroy() {
+    browser.storage.local.get({ "everywhere": true, [location.host]: true }).then((visibility) => {
+      if (Object.values(visibility).every(Boolean)) {
+        create();
+      } else {
+        destroy();
+      }
+    });
+  }
+  createOrDestroy();
+  browser.storage.local.onChanged.addListener(createOrDestroy);
+
 })();

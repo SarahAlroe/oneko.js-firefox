@@ -2,9 +2,9 @@
 
   "manifest_version": 2,
   "name": "oneko",
-  "version": "1.2",
-
+  "version": "1.3",
   "description": "Applies the oneko.js port of xneko/oneko to all pages.",
+  "homepage_url": "https://github.com/SarahAlroe/oneko.js-firefox",
 
   "icons": {
     "32": "icons/oneko-32.png",
@@ -18,6 +18,17 @@
       "js": ["oneko.js"]
     }
   ],
+
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+
+  "browser_action": {
+    "default_icon": "icons/oneko.svg",
+    "default_title": "oneko",
+    "default_popup": "popup/oneko_settings.html"
+  },
 
   "background": {
     "scripts": ["background.js"],
